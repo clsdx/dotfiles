@@ -1,0 +1,7 @@
+[user]
+	name = clsdx
+	email = c.seydoux@gmx.com
+[core]
+	editor = vim
+[merge]
+	tool = vimdiff
