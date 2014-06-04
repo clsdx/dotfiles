@@ -1,5 +1,5 @@
 #!/bin/bash
-cp -r ./ ~/
+cp -r ./* ~/
 source ~/.bashrc
 source ~/.vimrc
 echo "done"
