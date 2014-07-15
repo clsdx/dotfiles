@@ -1,0 +1,153 @@
+var ubi = require("ubiutils"),
+fs = require('fs'),
+uu = require('underscore'),
+async = require('async'),
+kb = require("./kb"),
+rpcServer = require("./rpcServer"),
+stimulistener = require("./stimulistener")(kb);
+
+var log = ubi.log('ubi_core_index');
+
+
+module.exports = {
+
+    init: function(ubi_conf) {
+	// configure n3 store
+	kb.store.configure(ubi_conf.n3);
+	
+	// create default n3 store
+	kb.store.create(0, function(err){
+	    if(!err) {
+/*
+		// create fake testing store
+		log.info("Creating testing store #12");
+		kb.store.create(12, function(err) {
+		    if(!err) {
+			// verify that the default store has not changed
+			log.info("Default triplestore size: " + kb.store.size(0) );
+			
+			// search triples (just to test)
+			var triples = kb.store.find(12, "qol:liveIn", null, null);
+			log.info("Example triples: "+JSON.stringify(triples));
+
+			// test n3util shorten/expand
+			var triple = triples[1];
+			var shorty = kb.store.shortenN3(12, triple);
+			log.info("shorty: "+JSON.stringify(shorty));
+			var biggy = kb.store.expandN3(12, shorty);
+			log.info("biggy: "+JSON.stringify(biggy));
+			
+			var strShorty = shorty.subject+" "+shorty.predicate+" "+shorty.object;
+			var strBiggy = kb.store.expandN3(12, strShorty)+".";
+			log.info("strBiggy: "+strBiggy);
+			var strShortyPoint = kb.store.shortenN3(12, strBiggy);
+			log.info("strShortyPoint: "+strShortyPoint);
+
+			var john = "hom:johndoe";
+			var bigJohn = kb.store.expandN3(12, john);
+			log.info("bigJohn: "+bigJohn);
+			var smallJohn = kb.store.shortenN3(12, bigJohn);
+			log.info("smallJohn: "+smallJohn);
+			
+			// sort triples (just to test)
+			var sortedTriples = kb.store.sort(triples, "predicate", 'DESC');
+			log.info("Sorted triples: "+JSON.stringify(sortedTriples));
+
+			// search URIs (just to test)
+			var uris = kb.store.findURI(12, "predicate", "qol:liveIn", null, null);
+			log.info("Example uris: "+uris);
+
+			// test existence (just to test)
+			log.info("Should exist: " + kb.store.exists(12, "hom:johndoe", "rdf:type", "qol:Resident"));
+			log.info("Shouldn't exist: " + kb.store.exists(12, "_:ulysse", "_:a-fait", "_:un-beau-voyage"));
+
+			// add triple to store
+			log.info("Triplestore size: " + kb.store.size(12) );
+			kb.store.addTriple(12, "_:ulysse", "_:a-fait", "_:un-beau-voyage");
+			log.info("Should exists now: " + kb.store.exists(12, "_:ulysse", "_:a-fait", "_:un-beau-voyage"));
+			log.info("Triplestore size with Ulysse: " + kb.store.size(12) );
+
+			// add multiple triples
+			var fernandel = [{
+			    subject: "_:el'lavabo",
+			    predicate: "_:avait",
+			    object: "_:une-fuite"
+			}, {
+			    subject: "_:felicie",
+			    predicate: "_:avait",
+			    object: "_:une-fuite"
+			}];
+			kb.store.addTriples(12, fernandel);
+			log.info("Triplestore size with Fernandel: " + kb.store.size(12) );
+			
+			//remove tests
+			kb.store.removeTriple(12, fernandel[1]);
+			log.info("Triplestore size after removing Fernandel: " + kb.store.size(12));;
+
+			//update object test + remove multiple triples test
+			var schrodinger = [{
+				subject: "_:chat",
+				predicate: "_:est",
+				object: "_:vivant"
+			},{
+				subject: "_:chat",
+				predicate: "_:est",
+				object: "_:mort"
+			}];
+			kb.store.addTriples(12, schrodinger);
+			log.info("Triplestore size with schrodinger's cat: " + kb.store.size(12));
+			kb.store.updateObject(12, "_:chat", "_:est", "_:mortETvivant");
+			log.info("Triplestore size with schrodinger's cat theorized: " + kb.store.size(12));
+
+			//update subject test (+ remove multiple triples test)
+			var vador = [{
+				subject: "_:Vador_a_tue",
+				predicate: "_:ton",
+				object: "_:pere"
+			},{
+				subject: "_:un_jedi_etait",
+				predicate: "_:ton",
+				object: "_:pere"
+			}];
+			kb.store.addTriples(12, vador);
+			log.info("Triplestore size with intolerable suspense: " + kb.store.size(12));
+			kb.store.updateSubject(12, "_:je_suis", "_:ton", "_:pere");
+			log.info("Triplestore size with truth but minus one hand: " + kb.store.size(12));
+
+			// dump kb to file (no filepath to use default)
+			kb.store.dump(12, function(err) {
+			    if(!err) {
+				log.info("Triplestore dumped to file!");
+			    } else {
+				log.error("Error while dumping triplestore: "+err);
+			    }
+			});
+
+			// clear the triplestore
+			kb.store.reset(12, function(err) {
+			    if(!err) {
+				log.info("Triplestore back to original state!");
+				log.info("Triplestore size: " + kb.store.size(12) );
+			    }
+			});
+
+		    } else {
+		        log.error(err);
+		    }
+		});
+*/
+	    }
+	});
+
+	// create RPC server to provide hooks to python
+	rpcServer.start(ubi_conf.rpcServerAddress);
+
+	// set python's RPC address
+	stimulistener.setPythonRpcAddress(ubi_conf.pythonRpcAddress);
+    },
+    
+    kb: kb,
+    
+    stimulistener: stimulistener
+    
+}

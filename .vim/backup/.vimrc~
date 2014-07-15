@@ -1,4 +1,4 @@
-"set statusline+=%f
+set statusline+=%f
 helptags ~/.vim/doc
 set backup
 set backupdir=~/.vim/backup

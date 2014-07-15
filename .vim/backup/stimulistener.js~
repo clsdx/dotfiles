@@ -1,0 +1,150 @@
+module.exports = function(kb) {
+
+    var ubi = require("ubiutils"),
+    async = require('async'),
+    zerorpc = require('zerorpc'),
+    cortex = require("./ubibrain/cortex")(kb);
+    
+    var log = ubi.log('stimulistener');
+    var dayOfWeek = null;
+    var ready = [];
+    var eventQueue = [];
+    var pythonRpcAddress;
+
+
+    var forwardToPython = function(event) {
+	var client = new zerorpc.Client();
+	client.connect("tcp://127.0.0.1:4242");
+	client.invoke("publishEvent", JSON.stringify(event), function(error, res, more) {
+	    /* error does not seem to work as expected, thus this part is left commented
+	    if(error) {
+	    log.error("Error in python reasoning over RPC: "+JSON.stringify(error));
+	    } else {
+		log.debug("Python reasoning over RPV responded: "+JSON.stringify(res));
+	    }
+	    */
+	});
+    };
+    
+    var makeUpdates = function(event, cb) {
+	var house = event.house;
+	// retrieve sensor uri
+	var sensorURI = kb.store.findURI(house, 'subject', 'hom:'+event.sensor.toLowerCase(), 'rdf:type', 'qol:Sensor')[0];
+	if(sensorURI.length != 0) {
+	    // check if state is valid
+	    var stateURI = sensorURI+"_"+event.value.toLowerCase();
+	    if(kb.store.exists(house, sensorURI, 'qol:hasPossibleState', stateURI)) {
+		// make triplestore updates
+		/* NOTA:
+		 * Use async.parallel if several asynchronous calls are used.
+		 * This ensures cb() is called only after all updates have been done.
+		 */
+		kb.store.updateObject(house, sensorURI, 'qol:hasCurrentState', stateURI);
+		kb.store.updateSubject(house, sensorURI, 'qol:hasLastUpdate', '"true"^^xsd:boolean');
+		var makeTimeUpdates = function(cb) {
+		    kb.store.makeN3Time(event.date, house, function(time) {
+			kb.store.updateObject(house, sensorURI, 'qol:lastUpdate', time);
+			kb.store.updateObject(house, 'hom:clock', 'qol:hasValue', time);
+			cb(null, null);
+		    });
+		};
+		var makeCalendarUpdate = function(cb) {
+		    kb.store.makeN3Day(event.date, function(day) {
+			kb.store.updateObject(house, 'hom:calendar', 'qol:hasValue', day);
+			cb(null, null);
+		    });
+		};
+		async.parallel([makeTimeUpdates, makeCalendarUpdate], function(err, results) {
+		    cb(err);
+		});
+		
+	    } else {
+		cb("Unknown sensor state "+event.value+" for sensor "+event.sensor+" in house "+house);
+	    }
+	} else {
+	    cb("Unknown sensor ID "+event.sensor+" in house "+house);
+	}
+    };
+
+    var next = function(house) {
+	ready[house] = true;
+	// process next event if any
+	if(eventQueue[house].length > 0) {
+	    handle(eventQueue[house].shift());
+	}
+    };
+
+    var checkStoreExistence = function(house, cb) {
+	if(!kb.store.isCreated(house)) {
+	    log.info("Creating triplestore for house #"+house);
+	    kb.store.create(house, function(err){
+		eventQueue[house] = [];
+		cb(err)
+	    });
+	} else {
+	    cb(null);
+	}
+    };
+    
+    var handle = function(event) {
+	/* 
+	 * decode event to add it to the triplestore
+	 * put event in queue if brain not ready
+	 * automatically process next event from queue if any
+	 */
+
+	// forward to python reasoning
+	forwardToPython(event);
+
+	// reasoning in node
+	var house = event.house;
+
+	// ensure synchronicity of triplestore updates and reasoning
+	if(ready[house] || ready[house] == null) {
+	    ready[house] = false;
+
+	    // process event
+	    log.trace("Processing event #"+event.id+": "+JSON.stringify(event));
+
+	    // make sure that this house's store exists
+	    checkStoreExistence(event.house, function(err) {
+		if(!err) {
+		    // make updates
+		    makeUpdates(event, function(err) {
+			// start reasoning if updates successful
+			if(!err) {
+			    log.trace("Updates done, starting reasoning #"+event.id);
+			    cortex.think(house, event.id, function(err) {
+				// done with reasoning
+				log.trace("Done with reasoning #"+event.id);
+				// free access and process next event if any
+				next(house);
+			    });
+			} else {
+			    log.error("Error updating the triplestore: "+err);
+			    // free access and process next event if any
+			    next(house);
+			}
+		    });
+		} else {
+		    log.error(err);
+		}
+	    });
+	    
+	} else {
+	    // put event in queue
+	    eventQueue[house].push(event);
+	    log.trace("Event queued: "+JSON.stringify(event));
+	}
+    };
+	
+    return {
+
+	handle: handle,
+
+	setPythonRpcAddress: function(address) {
+	    pythonRpcAddress = address;
+	}
+
+    }
+}
