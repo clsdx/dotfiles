@@ -1,8 +1,9 @@
+" vim:fdm=marker
+
+" TODO check if I need IndentAnything.vim in case I broke everything
+
 "set statusline+=%f
-helptags ~/.vim/doc
-set backup
-set backupdir=~/.vim/backup
-set directory=~/.vim/tmp
+filetype off
 
 
 
@@ -26,11 +27,77 @@ set nocompatible
 " Attempt to determine the type of a file based on its name and possibly its
 " contents. Use this to allow intelligent auto-indenting for each filetype,
 " and for plugins that are filetype specific.
+
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+" Plugins {{{1
+" The plugin manager iteself
+Plugin 'gmarik/vundle'
+
+" Distraction free plugin goyo
+Plugin 'junegunn/goyo.vim'
+
+" Belle barre
+Plugin 'bling/vim-airline'
+
+" enables solarized colors on vim
+Plugin 'altercation/vim-colors-solarized'
+
+" Improved commentaries
+Plugin 'tpope/vim-commentary'
+
+" Enables custom repetition
+Plugin 'tpope/vim-repeat'
+
+" git integration in vim
+Plugin 'tpope/vim-fugitive'
+
+" adds symbols for git management in vim
+" Plugin 'airblade/vim-gitgutter'
+" TODO apprendre
+
+" vim/tmux navigator
+Plugin 'christoomey/vim-tmux-navigator'
+
+" semantic web highlighting
+Plugin 'seebi/semweb.vim'
+
+" javascript integration
+Plugin 'pangloss/vim-javascript'
+Plugin 'marijnh/tern_for_vim'
+
+" json highlighting
+Plugin 'elzr/vim-json'
+
+" LaTeX highlighting
+Plugin 'LaTeX-Box-Team/LaTeX-Box'
+
+" Markdown integration
+Plugin 'plasticboy/vim-markdown'
+
+" vim outliner
+Plugin 'vimoutliner/vimoutliner'
+" TODO apprendre
+
+" html5 integration
+Plugin 'othree/html5.vim'
+Plugin 'mattn/emmet-vim'
+
+" TODO apprendre
+
+call vundle#end()
+
+
 filetype indent plugin on
 
 " Enable syntax highlighting
 syntax on
 
+helptags ~/.vim/doc
+set backup
+set backupdir=~/.vim/backup
+set directory=~/.vim/tmp
 
 "------------------------------------------------------------
 " Must have options {{{1
@@ -60,6 +127,11 @@ set hidden
 
 " Better command-line completion
 set wildmenu
+set wildignore+=*.swp,*.swo
+set wildignore+=*.pdf
+set wildignore+=*.jpg,*.bmp,*.gif
+set wildignore+=*.o,*.dll,*.obj,*.exe
+
 
 " Show partial commands in the last line of the screen
 set showcmd
@@ -67,6 +139,21 @@ set showcmd
 " Highlight searches (use <C-L> to temporarily turn off highlighting; see the
 " mapping of <C-L> below)
 set hlsearch
+set incsearch
+set showmatch
+
+" better copy and paste
+set clipboard=unnamed
+
+" fold by syntax
+set foldmethod=syntax
+
+" smarter split
+set splitbelow
+set splitright
+
+" set encoding
+set encoding=utf-8
 
 " Modelines have historically been a source of security vulnerabilities. As
 " such, it may be a good idea to disable them and use the securemodelines
@@ -92,6 +179,10 @@ set backspace=indent,eol,start
 " When opening a new line and no filetype-specific indenting is enabled, keep
 " the same indent as the line you're currently on. Useful for READMEs, etc.
 set autoindent
+
+" set 5 lines under the cursor, at the bottom of the screen, for easier
+" reading
+set scrolloff=5
 
 " Stop certain movements from always going to the first character of a line.
 " While this behaviour deviates from that of Vi, it does what most users
@@ -141,9 +232,11 @@ set pastetoggle=<F11>
 
 " Indentation settings for using 2 spaces instead of tabs.
 " Do not change 'tabstop' from its default value of 8 with this setup.
-set shiftwidth=2
-set softtabstop=2
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
 set expandtab
+set shiftround
 
 " Indentation settings for using hard tabs for indent. Display tabs as
 " two characters wide.
@@ -156,13 +249,65 @@ set expandtab
 "
 " Useful mappings
 
-" Map Y to act like D and C, i.e. to yank until EOL, rather than act as yy,
-" which is the default
-map Y y$
-
 " Map <C-L> (redraw screen) to also turn off search highlighting until the
 " next search
-nnoremap <C-L> :nohl<CR><C-L>
+nnoremap <C-L> :nohl<CR>
+inoremap jj <ESC>
 
+
+" wrap lines visually but not hard wrap
+set wrap
+
+" only smart break at break characters (.,:)
+set linebreak
+set nolist
+
+"   q: allow formatting of comments
+"   r: carry the current comment forward on next line
+"   n: smart indent on lists (when wrapping in an item)
+"   l: no automatic linebreak
+set formatoptions=qrnl
+" TODO regarder mieux
+
+" remap for better line wrapping
+nnoremap j gj
+vnoremap j gj
+nnoremap k gk
+vnoremap k gk
+
+" reselect visual block after indent
+vnoremap > >gv
+vnoremap < <gv
+vnoremap = =gv
+
+" in case I use buffers
+nnoremap <Leader><Leader> <C-^>
 
 "------------------------------------------------------------
+
+"Plugin config {{{1
+
+" Goyo
+nnoremap <Leader>f :Goyo<CR>
+function! GoyoBefore()
+    set scrolloff=999
+endfunction
+function! GoyoAfter()
+    set scrolloff=5
+endfunction
+
+let g:goyo_callbacks = [function('GoyoBefore'), function('GoyoAfter')]
+
+" vim-airline
+let g:airline_powerline_fonts=0
+let g:airline_exclude_preview=1
+let g:pwerline_loaded=1
+
+" vim-solarized
+set t_Co=256
+let g:solarized_termcolors=256
+set background=dark
+colorscheme solarized
+
+
+"
