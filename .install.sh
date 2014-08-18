@@ -1,6 +1,6 @@
 #!/bin/bash
 ln -s dotfiles/.bash_profile ~/
-ln -s dotfiles/.bashrc ~/
+ln -sf dotfiles/.bashrc ~/
 ln -s dotfiles/.gitconfig ~/
 ln -s dotfiles/.git-prompt.sh ~/
 ln -s dotfiles/.vim ~/
