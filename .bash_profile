@@ -68,3 +68,6 @@ export PATH=/usr/local/heroku/bin:$PATH # Heroku: https://toolbelt.heroku.com/st
 export LC_ALL="en_US.UTF-8"
 export LANGUAGE="en_US:en"
 export LANG="en_US.UTF-8"
+
+export NVM_DIR="/home/ubuntu/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
