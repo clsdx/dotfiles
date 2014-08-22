@@ -55,7 +55,7 @@ Plugin 'tpope/vim-fugitive'
 
 " adds symbols for git management in vim
 " Plugin 'airblade/vim-gitgutter'
-" TODO apprendre
+" TODO learn
 
 " vim/tmux navigator
 Plugin 'christoomey/vim-tmux-navigator'
@@ -78,13 +78,13 @@ Plugin 'plasticboy/vim-markdown'
 
 " vim outliner
 Plugin 'vimoutliner/vimoutliner'
-" TODO apprendre
+" TODO learn
 
 " html5 integration
 Plugin 'othree/html5.vim'
 Plugin 'mattn/emmet-vim'
 
-" TODO apprendre
+" TODO learn
 
 call vundle#end()
 
@@ -94,7 +94,11 @@ filetype indent plugin on
 " Enable syntax highlighting
 syntax on
 
-helptags ~/.vim/doc
+" edited out, seems to have problems
+" TODO check it out
+" helptags ~/.vim/doc
+
+
 set backup
 set backupdir=~/.vim/backup
 set directory=~/.vim/tmp
